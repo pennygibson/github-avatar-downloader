@@ -1,14 +1,22 @@
 var request = require('request');
 var fs = require('fs');
+require('dotenv').config();
 
 
 
 console.log('Welcome to the GitHub Avatar Downloader!');
 
-var GITHUB_USER = "pennygibson";
-var GITHUB_TOKEN = "2cb5712cd7e2523d398b7cf0174f86abd8ca2a7d";
+var GITHUB_USER = process.env.GITHUB_USER;
+var GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+var username = process.argv[2]
+var github_repo_name = process.argv[3]
 
 function getRepoContributors(repoOwner, repoName, cb){
+  if(!repoOwner || !repoName){
+    console.log('Invalid Input')
+    return;
+  }
+
   var requestURL = 'https://'+GITHUB_USER + ':' + GITHUB_TOKEN + '@api.github.com/repos/' + repoOwner + '/' + repoName + '/contributors';
   console.log(requestURL);
 
@@ -21,28 +29,23 @@ function getRepoContributors(repoOwner, repoName, cb){
 
    var data = JSON.parse(body);
 
-   cb(error, data)
-
-
+   cb(error, data) //is invoking the function that was passed into the callback
  });
 }
 
-getRepoContributors(process.argv[2], process.argv[3], function(error, data) {
-  if(!process.argv[3]){
-    console.log('Invalid Input')
-  } else {
+getRepoContributors(username, github_repo_name, function(error, data) {
+
 
   for(var i = 0; i < data.length; i++){
     downloadImageByURL(data[i].avatar_url, './avatars/' + data[i].login + '.jpg');
-
   }
-}
+
 });
 
 function downloadImageByURL(url, filePath){
 
   request.get(url)
-  .pipe(fs.createWriteStream(filePath));
+    .pipe(fs.createWriteStream(filePath));
 }
 
 
